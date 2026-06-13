@@ -11,13 +11,22 @@
   <style>
     * { box-sizing: border-box; }
 
-    body {
+      body {
       margin: 0;
       font-family: 'Nunito', sans-serif;
       min-height: 100vh;
       background: linear-gradient(180deg, #a4d3ff 0%, #dbeeff 40%, #eef6ff 70%, #ffffff 100%);
       background-attachment: fixed;
       overflow-x: hidden;
+      
+      /* 1. THE DEFAULT ARROW CURSOR */
+      cursor: url('https://cur.cursors-4u.net/windows/win-2/win115.cur'), auto;
+    }
+
+    /* 2. THE CLICKABLE HAND CURSOR (For all buttons and links) */
+    a, button, .tile, .home-btn, .start-btn, .side-btn, .action-btn, .back-btn {
+      cursor: url('https://cur.cursors-4u.net/windows/win-2/win116.cur'), pointer !important;
+    }
     }
 
     /* --- Custom Scrollbar --- */
