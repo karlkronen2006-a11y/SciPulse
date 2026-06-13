@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SciPulse - Frutiger Aero UI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #a4d3ff 0%, #dbeeff 40%, #eef6ff 70%, #ffffff 100%);
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    /* --- Custom Scrollbar --- */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.6); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.9); background-clip: padding-box; }
+
+    /* --- Welcome Screen Styles --- */
+    #welcome-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, #cfe7ff 0%, #eef6ff 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.5s ease;
+    }
+
+    /* =========================================
+       THE ORIGINAL WHITE HOME BUTTON
+       ========================================= */
+    .home-btn {
+      position: relative;
+      display: flex; align-items: center; gap: 10px;
+      padding: 4px 20px 4px 4px;
+      text-decoration: none; 
+      color: #333; 
+      cursor: pointer;
+      
+      background: linear-gradient(to bottom, #ffffff, #e6f0ff);
+      border: 4px solid rgba(255, 255, 255, 0.6); 
+      background-clip: padding-box;
+      border-radius: 40px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15), inset 0 4px 10px rgba(255,255,255,1);
+      user-select: none;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .home-btn::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
+      pointer-events: none; z-index: 1;
+    }
+
+    .home-btn img, .home-btn strong {
+      position: relative; z-index: 2;
+    }
+
+    .home-btn img {
+      width: 64px; height: 64px; border-radius: 50%;
+      margin-bottom: -12px; margin-top: -12px; margin-right: -12px; margin-left: -12px;
+    }
+
+    .home-btn strong { font-size: 16px; }
+
+    .home-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 2px 6px rgba(255,255,255,1);
+    }
+
+    /* =========================================
+       FRUTIGER BLUE BUTTONS
+       ========================================= */
+    .start-btn, .side-btn, .back-btn, .action-btn {
+      position: relative;
+      background: linear-gradient(180deg, #33b8ff 0%, #005ce6 48%, #0033b3 50%, #001a80 100%);
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      background-clip: padding-box;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -4px 10px rgba(0,0,0,0.4);
+      cursor: pointer; user-select: none; text-decoration: none;
+      overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; font-family: inherit;
+    }
+
+    .start-btn::before, .side-btn::before, .back-btn::before, .action-btn::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 48%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%);
+      pointer-events: none; z-index: 1;
+    }
+
+    .start-btn { padding: 20px 50px; font-size: 24px; font-weight: 600; border-radius: 40px; animation: pulse 2s infinite ease-in-out; }
+    .side-btn { display: block; width: 100%; padding: 12px 20px; margin-bottom: 15px; text-align: center; font-weight: 600; font-size: 16px; border-radius: 30px; }
+    .side-btn span, .action-btn span { position: relative; z-index: 2; }
+    .back-btn { position: absolute; top: 20px; left: 20px; padding: 10px 15px; font-weight: 600; border-radius: 14px; }
+    .action-btn { padding: 10px 25px; font-weight: 600; font-size: 16px; border-radius: 20px; }
+
+    .side-btn:hover, .back-btn:hover, .action-btn:hover {
+      transform: scale(1.05); box-shadow: 0 12px 20px rgba(0,0,0,0.4), inset 0 2px 6px rgba(255,255,255,1);
+    }
+
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 2px 8px rgba(255,255,255,1); } 100% { transform: scale(1); } }
+    @keyframes pulse-small { 0% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 4px 10px rgba(255,255,255,1); } 100% { transform: scale(1); } }
+
+    /* =========================================
+       LAYOUT & PANELS
+       ========================================= */
+    .topbar, .container, .sidebar {
+      position: relative;
+      background: linear-gradient(180deg, rgba(51, 184, 255, 0.75) 0%, rgba(0, 51, 179, 0.85) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px);
+    }
+
+    .topbar::before, .container::before, .sidebar::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.0) 100%);
+      border-radius: inherit; pointer-events: none; z-index: 0;
+    }
+
+    .topbar { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+    .topbar .left, .topbar .right { display: flex; align-items: center; gap: 15px; z-index: 2; }
+    #clock { color: white; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+    
+    .layout-wrapper { display: flex; align-items: flex-start; justify-content: center; max-width: 1200px; margin: 40px auto; gap: 30px; padding: 0 20px; height: calc(100vh - 144px); }
+    .sidebar { width: 260px; flex-shrink: 0; padding: 30px 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 2px 10px rgba(255,255,255,0.5); }
+    .sidebar-header { position: relative; z-index: 2; text-align: center; margin-bottom: 30px; margin-top: -30px; }
+    .sidebar-header img { width: 128px; height: 128px; border-radius: 10%; margin-bottom: -20px; }
+    .sidebar-header h3 { margin: 0; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .container { flex-grow: 1; padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 2px 10px rgba(255,255,255,0.5); height: 100%; overflow-y: auto; }
+
+    @media (max-width: 768px) { .layout-wrapper { flex-direction: column; height: auto; } .sidebar { width: 100%; } .container { overflow-y: visible; height: auto; } }
+
+    /* =========================================
+       JOURNALING SYSTEM & AUTH STYLES
+       ========================================= */
+    .section-title { position: relative; z-index: 2; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); margin-top: 0; font-weight: 800; font-size: 28px; }
+    
+    /* Hidden by default until logged in */
+    .journal-composer { position: relative; z-index: 2; margin-bottom: 40px; display: none; animation: fadeIn 0.5s ease; }
+
+    /* Glassy Inputs for Journal & Login */
+    .glass-input {
+      width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 15px; font-family: inherit; font-size: 16px;
+      background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid rgba(255, 255, 255, 0.5);
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.2); outline: none; transition: background 0.3s ease;
+    }
+    textarea.glass-input { height: 120px; resize: vertical; }
+    .glass-input::placeholder { color: rgba(255, 255, 255, 0.7); }
+    .glass-input:focus { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.8); }
+
+    .article-feed { position: relative; z-index: 2; margin-bottom: 40px; }
+    .article-card { position: relative; padding: 20px; margin-bottom: 15px; border-radius: 12px; background: linear-gradient(180deg, rgba(100, 200, 255, 0.4) 0%, rgba(50, 150, 200, 0.2) 100%); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.4); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); overflow: hidden; animation: slideIn 0.4s ease-out; }
+    .article-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none; }
+    .article-meta { font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
+    .article-content { font-size: 16px; line-height: 1.5; white-space: pre-wrap; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .glass-divider { position: relative; z-index: 2; border: 0; height: 2px; margin: 30px 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); }
+
+    /* =========================================
+       LOGIN MODAL
+       ========================================= */
+    #login-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; animation: fadeIn 0.3s ease;
+    }
+    .login-box {
+      width: 100%; max-width: 400px; text-align: center;
+      padding: 40px; border-radius: 20px;
+    }
+
+    /* =========================================
+       TILES & APP SCREEN
+       ========================================= */
+    .grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 25px; justify-items: center; }
+    .tile { position: relative; width: 120px; height: 120px; background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(230,240,255,0.9)); background-clip: padding-box; border-radius: 28px; box-shadow: 0 8px 15px rgba(0,0,0,0.2), inset 0 4px 10px rgba(255,255,255,1); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .tile::before { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; height: 55%; background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0)); border-top-left-radius: 24px; border-top-right-radius: 24px; pointer-events: none; z-index: 0; }
+    .tile::after { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; background: url('your-vista-frame.png') center/100% 100% no-repeat; pointer-events: none; z-index: 5; }
+    .tile:hover { transform: scale(1.1); box-shadow: 0 12px 25px rgba(0,0,0,0.3), inset 0 4px 12px rgba(255,255,255,1); }
+    .tile img { width: 50px; height: 50px; margin-bottom: 10px; z-index: 1; }
+    .tile span { font-size: 14px; text-align: center; z-index: 1; font-weight: 600; color: #333; }
+    .app-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #ffffff, #e6f0ff); display: none; flex-direction: column; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; z-index: 100; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+    .app-screen.closing { animation: fadeOut 0.3s ease forwards; }
+
+  </style>
+</head>
+<body>
+
+  <div id="welcome-screen">
+    <div class="start-btn" id="start-btn">Touch to Start</div>
+  </div>
+
+  <div id="login-modal">
+    <div class="container login-box">
+      <h2 class="section-title" style="margin-bottom: 20px;">Admin Login</h2>
+      <input type="email" id="auth-email" placeholder="Email" class="glass-input">
+      <input type="password" id="auth-password" placeholder="Password" class="glass-input">
+      <button id="auth-submit-btn" class="action-btn" style="width: 100%; margin-top: 10px;"><span>Verify Identity</span></button>
+      <button id="auth-close-btn" class="action-btn" style="width: 100%; margin-top: 15px; background: transparent; box-shadow: none; border: 2px solid rgba(255,255,255,0.4);"><span>Cancel</span></button>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="left">
+      <a href="/" class="home-btn">
+        <img src="logo.png" alt="Logo">
+        <strong>SciPulse</strong>
+      </a>
+    </div>
+    <div class="right">
+      <span id="clock"></span>
+      <button id="auth-toggle-btn" class="action-btn" style="padding: 6px 15px; font-size: 14px;"><span>Login</span></button>
+    </div>
+  </div>
+
+  <div class="layout-wrapper">
+    
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="logo.png" alt="OS Icon">
+        <h3>SciPulse</h3>
+      </div>
+      
+      <a href="#" class="side-btn"><span>Home</span></a>
+      <a href="#" class="side-btn"><span>My Portfolio</span></a>
+      <a href="#" class="side-btn"><span>Aero Insta</span></a>
+      <a href="#" class="side-btn"><span>Shop</span></a>
+    </aside>
+
+    <main class="container">
+      
+      <h2 class="section-title">Journal Dashboard</h2>
+      
+      <div id="journal-composer" class="journal-composer">
+        <textarea id="journal-input" class="glass-input" placeholder="What's on your mind? Write a new article..."></textarea>
+        <button id="publish-btn" class="action-btn"><span>Publish Article</span></button>
+      </div>
+
+      <div id="article-feed" class="article-feed"></div>
+
+      <hr class="glass-divider">
+
+      <h2 class="section-title">Applications</h2>
+      <div class="grid" id="grid"></div>
+      
+    </main>
+    
+  </div>
+
+  <div class="app-screen" id="appScreen">
+    <button class="back-btn" onclick="closeApp()"><span>Back</span></button>
+    <h1 id="appTitle"></h1>
+  </div>
+
+  <audio id="bg-music" loop>
+    <source src="https://files.catbox.moe/n79ubk.flac" type="audio/flac">
+  </audio>
+
+  <script>
+    // ==========================================
+    // 1. UI, APPS, CLOCK & WELCOME SCREEN
+    // ==========================================
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const startBtn = document.getElementById('start-btn');
+    const backgroundMusic = document.getElementById('bg-music');
+    
+    backgroundMusic.volume = 0.1; 
+
+    startBtn.addEventListener('click', function() {
+      if (backgroundMusic.paused) { backgroundMusic.play().catch(e => console.log(e)); }
+      welcomeScreen.style.opacity = '0';
+      setTimeout(() => { welcomeScreen.style.display = 'none'; }, 500);
+    });
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    const apps = [
+      { name: 'Browser', icon: 'https://frutigeraeroarchive.org/images/icons/windows_vista/vista_netcenter.ico' },
+      { name: 'Settings', icon: 'CP010.ico' },
+      { name: 'Gallery', icon: 'File104.ico' },
+      { name: 'Music', icon: 'Media004.ico' },
+      { name: 'Games', icon: 'H&D061.ico' },
+      { name: 'Chat', icon: 'https://frutigeraeroarchive.org/images/icons/windows_vista/vista_messenger.ico' }
+    ];
+
+    const grid = document.getElementById('grid');
+    apps.forEach(app => {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.innerHTML = `<img src="${app.icon}" /><span>${app.name}</span>`;
+      tile.onclick = () => openApp(app.name);
+      grid.appendChild(tile);
+    });
+
+    function openApp(name) { document.getElementById('appTitle').innerText = name; document.getElementById('appScreen').style.display = 'flex'; }
+    function closeApp() { const screen = document.getElementById('appScreen'); screen.classList.add('closing'); setTimeout(() => { screen.style.display = 'none'; screen.classList.remove('closing'); }, 300); }
+
+    // ==========================================
+    // 2. SUPABASE AUTH & DATABASE LOGIC
+    // ==========================================
+    const publishBtn = document.getElementById('publish-btn');
+    const journalInput = document.getElementById('journal-input');
+    const articleFeed = document.getElementById('article-feed');
+    const journalComposer = document.getElementById('journal-composer');
+    
+    // Auth UI Elements
+    const authToggleBtn = document.getElementById('auth-toggle-btn');
+    const loginModal = document.getElementById('login-modal');
+    const authSubmitBtn = document.getElementById('auth-submit-btn');
+    const authCloseBtn = document.getElementById('auth-close-btn');
+    const authEmail = document.getElementById('auth-email');
+    const authPassword = document.getElementById('auth-password');
+
+    function renderArticle(text, dateString) {
+      const newArticle = document.createElement('div');
+      newArticle.className = 'article-card';
+      newArticle.innerHTML = `<div class="article-meta">Published on ${dateString}</div><div class="article-content">${text}</div>`;
+      articleFeed.appendChild(newArticle);
+    }
+
+    try {
+      // !!! PUT YOUR KEYS HERE !!!
+      const supabaseUrl = 'https://ndtktnndckutthldosrw.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kdGt0bm5kY2t1dHRobGRvc3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjgxNzcsImV4cCI6MjA5Njk0NDE3N30.6KB3EcC854jjF7PZs-GZCrCGCzuCpLBvAgUEyt2z1Yg';
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+      // --- Database Fetching ---
+      async function loadArticles() {
+        articleFeed.innerHTML = ''; 
+        const { data, error } = await supabase.from('journal_articles').select('*').order('created_at', { ascending: false });
+        if (error) { console.error("Error loading articles:", error); return; }
+
+        data.forEach(article => {
+          const date = new Date(article.created_at);
+          const dateString = date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          renderArticle(article.content, dateString);
+        });
+      }
+
+      // --- Authentication Listeners ---
+      // This checks if you are logged in, and shows/hides the text box!
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          // Logged In!
+          authToggleBtn.innerHTML = '<span>Logout</span>';
+          journalComposer.style.display = 'block'; // Reveal text box
+        } else {
+          // Logged Out
+          authToggleBtn.innerHTML = '<span>Login</span>';
+          journalComposer.style.display = 'none'; // Hide text box
+        }
+      });
+
+      // --- Auth UI Interactions ---
+      authToggleBtn.addEventListener('click', async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.auth.signOut(); // Log out if already logged in
+        } else {
+          loginModal.style.display = 'flex'; // Show login box
+        }
+      });
+
+      authCloseBtn.addEventListener('click', () => { loginModal.style.display = 'none'; });
+
+      authSubmitBtn.addEventListener('click', async () => {
+        authSubmitBtn.innerHTML = '<span>Verifying...</span>';
+        const { error } = await supabase.auth.signInWithPassword({
+          email: authEmail.value,
+          password: authPassword.value
+        });
+
+        if (error) {
+          alert("Login Failed: " + error.message);
+          authSubmitBtn.innerHTML = '<span>Verify Identity</span>';
+        } else {
+          loginModal.style.display = 'none';
+          authEmail.value = ''; authPassword.value = '';
+          authSubmitBtn.innerHTML = '<span>Verify Identity</span>';
+        }
+      });
+
+      // --- Publishing ---
+      publishBtn.addEventListener('click', async () => {
+        const text = journalInput.value.trim();
+        if (text !== '') {
+          publishBtn.innerHTML = '<span>Publishing...</span>';
+          const { error } = await supabase.from('journal_articles').insert([{ content: text }]);
+
+          if (error) {
+            console.error("Error saving:", error); alert("Publish failed. Check console.");
+          } else {
+            journalInput.value = ''; await loadArticles(); 
+          }
+          publishBtn.innerHTML = '<span>Publish Article</span>';
+        }
+      });
+
+      // Start the app
+      loadArticles();
+
+    } catch (err) {
+      console.warn("Supabase not configured. Auth and database features are disabled.");
+    }
+  </script>
+</body>
+</html>
